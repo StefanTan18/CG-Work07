@@ -93,7 +93,7 @@ void parse_file ( char * filename,
   c.green = 255;
   c.blue = 255;
 
-  if ( strcmp(filename, "stdin") == 0 ) 
+  if ( strcmp(filename, "stdin") == 0 )
     f = stdin;
   else
     f = fopen(filename, "r");
@@ -122,6 +122,9 @@ void parse_file ( char * filename,
        xvals+1, yvals+1, zvals+1);
       add_box(polygons, xvals[0], yvals[0], zvals[0],
         xvals[1], yvals[1], zvals[1]);
+      matrix_mult(polygons, peek(csystems));
+      //draw_polygons(polygons, s, c); NOT DONE YET!
+
     }//end of box
 
     else if ( strncmp(line, "sphere", strlen(line)) == 0 ) {
@@ -157,7 +160,7 @@ void parse_file ( char * filename,
         type = HERMITE;
       else
         type = BEZIER;
-      
+
       fgets(line, sizeof(line), f);
       //printf("CURVE\t%s", line);
 
@@ -169,7 +172,7 @@ void parse_file ( char * filename,
           /*       xvals[1], yvals[1], */
           /*       xvals[2], yvals[2], */
           /*       xvals[3], yvals[3]); */
-      
+
           //printf("%d\n", type);
           add_curve( edges, xvals[0], yvals[0], xvals[1], yvals[1],
                      xvals[2], yvals[2], xvals[3], yvals[3], step, type);
@@ -196,9 +199,9 @@ void parse_file ( char * filename,
           /* printf("%lf %lf %lf\n", */
           /* xvals[0], yvals[0], zvals[0]); */
           tmp = make_scale( xvals[0], yvals[0], zvals[0]);
-          matrix_mult(tmp, transform);
+          matrix_mult(tmp, peek(csystems));
         }//end scale
-    
+
     else if ( strncmp(line, "move", strlen(line)) == 0 ) {
       fgets(line, sizeof(line), f);
       //printf("MOVE\t%s", line);
@@ -207,7 +210,7 @@ void parse_file ( char * filename,
       /* printf("%lf %lf %lf\n", */
       /* xvals[0], yvals[0], zvals[0]); */
       tmp = make_translate( xvals[0], yvals[0], zvals[0]);
-      matrix_mult(tmp, transform);
+      matrix_mult(tmp, peek(csystems));
     }//end translate
 
     else if ( strncmp(line, "rotate", strlen(line)) == 0 ) {
@@ -225,26 +228,33 @@ void parse_file ( char * filename,
       else
         tmp = make_rotZ( theta );
 
-      matrix_mult(tmp, transform);
+      matrix_mult(tmp, peek(csystems));
     }//end rotate
 
+    else if ( strncmp(line, "push", strlen(line)) == 0 ) {
+      push(csystems);
+    }//end push
 
-    else if ( strncmp(line, "clear", strlen(line)) == 0 ) {
-      //printf("clear\t%s", line);
-      edges->lastcol = 0;
-      polygons->lastcol = 0;
-    }//end clear
+    else if ( strncmp(line, "pop", strlen(line)) == 0 ) {
+      pop(csystems);
+    }//end pop
 
-    else if ( strncmp(line, "ident", strlen(line)) == 0 ) {
-      //printf("IDENT\t%s", line);
-      ident(transform);
-    }//end ident
-
-    else if ( strncmp(line, "apply", strlen(line)) == 0 ) {
-      //printf("APPLY\t%s", line);
-      matrix_mult(transform, edges);
-      matrix_mult(transform, polygons);
-    }//end apply
+    // else if ( strncmp(line, "clear", strlen(line)) == 0 ) {
+    //   //printf("clear\t%s", line);
+    //   edges->lastcol = 0;
+    //   polygons->lastcol = 0;
+    // }//end clear
+    //
+    // else if ( strncmp(line, "ident", strlen(line)) == 0 ) {
+    //   //printf("IDENT\t%s", line);
+    //   ident(transform);
+    // }//end ident
+    //
+    // else if ( strncmp(line, "apply", strlen(line)) == 0 ) {
+    //   //printf("APPLY\t%s", line);
+    //   matrix_mult(transform, edges);
+    //   matrix_mult(transform, polygons);
+    // }//end apply
 
     else if ( strncmp(line, "display", strlen(line)) == 0 ) {
       //printf("DISPLAY\t%s", line);
